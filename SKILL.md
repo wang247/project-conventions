@@ -1,7 +1,7 @@
 ---
 name: project-conventions
 description: "项目编码约定生成器：通过逐领域追问（界面、交互、后端架构、数据与 API 契约、健壮性、安全、测试、工程规范）与用户对齐偏好，最终在仓库根目录生成一份单文件中文 AGENTS.md，作为所有 AI 编码代理的项目约定。This skill should be used when the user wants to establish AI coding conventions for a project, mentions '项目约定'、'编码约定'、'建立项目约定'、'生成 AGENTS.md'、'定约定/规范', or starts a new project that needs consistent AI coding rules. Self-contained and portable: requires only file read/write and conversation."
-version: 1.4.0
+version: 1.5.0
 agent_created: true
 ---
 
@@ -47,9 +47,14 @@ agent_created: true
 2. 明确请用户回复三选一：**全收 / 改第 N 条（说改成什么）/ 补充新条目**。
 3. 记录定稿，进入下一领域。不得跳过未确认的领域，不得把未确认条目写入 AGENTS.md。
 
-### 第 3 步：写入 AGENTS.md
+### 第 3 步：写入 AGENTS.md 并初始化文档骨架
 
-将定稿写入仓库根目录 `AGENTS.md`，结构见下方"输出模板"。写入前向用户展示最终文件摘要（各领域条目数），确认后落盘。
+1. 将定稿写入仓库根目录 `AGENTS.md`，结构见下方"输出模板"。写入前向用户展示最终文件摘要（各领域条目数），确认后落盘。
+2. **同时初始化文档骨架**（已存在的文件与目录一律跳过，不得覆盖）：
+   - `CONTEXT.md`：写入标题与一句使用说明（"领域术语的唯一定义处；新术语随时追加，AI 禁止自行揣测术语含义"）；暂无术语则留空骨架。
+   - `docs/specs/`、`docs/design/`、`docs/adr/`、`docs/manual/` 四个目录：各建一个 `README.md`，一句话说明该目录放什么、什么时机生成（措辞直接复用下方"文档生成时机表"对应行）。
+   - `docs/maps/` **不预创建**——仅当地图单节超过 30 行需要拆分时才建。
+3. 骨架建好后向用户报告清单：创建了哪些文件、哪些已存在被跳过。
 
 ### 第 4 步：收尾
 
@@ -57,6 +62,21 @@ agent_created: true
 
 - 在项目后续会话中说一句"先读 AGENTS.md 再动手"即可让约定生效。
 - 需求变化时重新运行本技能即可增量更新。
+
+## 文档生成时机表
+
+职责边界：**本技能只在项目启动时跑一次**，负责 AGENTS.md 与文档骨架；其余文档由日常 agent 按 AGENTS.md 中"工作流程"章节的指示生成与更新。任何 agent 不确定某份文档何时生成时，以本表为准。
+
+| 文档 | 生成/更新时机 | 由谁负责 |
+|---|---|---|
+| `AGENTS.md` | 本技能运行定稿时生成；约定本身变化时重新运行技能增量更新 | 本技能 |
+| 文档骨架（`CONTEXT.md` 空骨架、`docs/` 四目录 + README 说明） | 本技能收尾时一次性初始化，已存在则跳过 | 本技能 |
+| `docs/specs/{功能名}.md` | 每个新功能在"工作流程"阶段 2（规格化）创建，必须含可判定验证标准；需求变更时同步更新受影响文件 | 日常 agent |
+| `CONTEXT.md` 内容 | 拷问或开发中出现新领域术语时即时追加，术语含义变化时修订 | 日常 agent |
+| `docs/adr/NNNN-{标题}.md` | 出现难逆转 + 需要说明理由的决策时即时追加；被推翻时写新 ADR 标注 `superseded by ADR-NNNN`，只追加不改旧 | 日常 agent |
+| `docs/design/architecture.md` | 首个架构级变更（阶段 3）时创建，此后仅重大变化时修订，日常变更走 ADR | 日常 agent |
+| `docs/manual/` | 仅当任务是"写/改操作手册"时按需创建，不预生成 | 日常 agent |
+| `docs/maps/{地图名}.md` | 仅当 AGENTS.md 内嵌地图单节超 30 行时拆出，原位留一行指针 | 日常 agent |
 
 ## 默认约定库
 
