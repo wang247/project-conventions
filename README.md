@@ -131,6 +131,7 @@ cp SKILL.md <agent-skills-dir>/project-conventions/SKILL.md
 ## 3. 后端与架构   ## 7. 测试策略
 ## 4. 数据与 API 契约 ## 8. 工程规范
 ## 文档地图 / 代码地图 / 测试地图
+## 包级约定差异（仅 monorepo 保留）
 ## 工作流程（六阶段）
 ## 文档同步（需求变更时强制执行）
 ## 附：个性化说明

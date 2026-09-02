@@ -1,7 +1,7 @@
 ---
 name: project-conventions
 description: "项目编码约定生成器：通过逐领域追问（界面、交互、后端架构、数据与 API 契约、健壮性、安全、测试、工程规范）与用户对齐偏好，最终在仓库根目录生成一份单文件中文 AGENTS.md，作为所有 AI 编码代理的项目约定。This skill should be used when the user wants to establish AI coding conventions for a project, mentions '项目约定'、'编码约定'、'建立项目约定'、'生成 AGENTS.md'、'定约定/规范', or starts a new project that needs consistent AI coding rules. Self-contained and portable: requires only file read/write and conversation."
-version: 1.5.1
+version: 1.5.2
 agent_created: true
 ---
 
@@ -16,7 +16,7 @@ agent_created: true
 ## 可移植性说明
 
 - 本技能只依赖"文件读写 + 对话"两种能力，不使用任何平台专属工具或绝对路径。
-- 支持skills 机制的 agent（WorkBuddy / Claude Code / zcode 等）：将本文件夹整体拷入其技能目录即可。
+- 支持 skills 机制的 agent（WorkBuddy / Claude Code / zcode 等）：将本文件夹整体拷入其技能目录即可。
 - 不支持技能机制的 agent（部分 harness）：把本文件正文（不含 frontmatter）整体粘贴进系统提示词或项目指令文件即可，流程完全相同。
 
 ## 流程
@@ -24,9 +24,9 @@ agent_created: true
 ### 第 0 步：判断运行模式
 
 - **模式 A（新项目）**：仓库为空或几乎没有代码 → 直接进入第 1 步问技术栈。
-- **模式 B（现有项目）**：仓库已有代码 → 先扫描代码库（读 `package.json` / `pyproject.toml` / `go.mod` / 目录结构 / 现有配置文件），推断技术栈与当前实际做法，再进入第 2 步。扫描同时收集三张地图（文档/代码/测试）的初版素材，并顺手生成初版 `docs/design/architecture.md`（标注"扫描推断，待人工校订"），避免文档地图指向一个永远不存在的文件。提议约定时**优先匹配现状**，与现状冲突的默认约定要明确标注"这是对现状的变更"并单独确认。若已存在 `AGENTS.md`，先读它，进入**增量更新模式**：只追问缺失或需修订的领域，改完 diff 确认后写回，不得静默覆盖用户的自定义内容。
+- **模式 B（现有项目）**：仓库已有代码 → 先扫描代码库（读 `package.json` / `pyproject.toml` / `go.mod` / 目录结构 / 现有配置文件），推断技术栈与当前实际做法；同时识别是否为 monorepo（存在 `pnpm-workspace.yaml` / `turbo.json` / `lerna.json` / `go.work` 等即命中），判定结果带入后续所有步骤，再进入第 2 步。扫描同时收集三张地图（文档/代码/测试）的初版素材，并顺手生成初版 `docs/design/architecture.md`（标注"扫描推断，待人工校订"），避免文档地图指向一个永远不存在的文件。提议约定时**优先匹配现状**，与现状冲突的默认约定要明确标注"这是对现状的变更"并单独确认。若已存在 `AGENTS.md`，先读它，进入**增量更新模式**：只追问缺失或需修订的领域，改完 diff 确认后写回，不得静默覆盖用户的自定义内容。
 
-### 第 1 步：确定技术栈（最多 4 问）
+### 第 1 步：确定技术栈（最多 5 问）
 
 用一次提问收集（模式 B 时改为陈述推断结果请用户确认）：
 
@@ -34,6 +34,7 @@ agent_created: true
 2. UI 方案（如 Tailwind / 组件库 / 原生 CSS）
 3. 后端形态与数据存储（单体 / 前后端分离 / BFF；SQL / NoSQL / 无后端）
 4. 部署与运行环境（Vercel / 自建服务器 / 本地脚本等）
+5. 是否为 monorepo（多包仓库。命中时根 `AGENTS.md` 将增设「包级约定差异」小节，并在拷问阶段让用户分包陈述差异；单仓库则输出模板中该节整体删除）
 
 后续所有默认约定都要按该技术栈**具体化**：写"用 TanStack Query 管理服务端状态"而不是"用一个状态管理库"。同时对照"栈附加包"章节，判断命中哪些附加包，命中的条目并入下一阶段对应领域的清单。
 
@@ -54,7 +55,7 @@ agent_created: true
    - `CONTEXT.md`：写入标题与一句使用说明（"领域术语的唯一定义处；新术语随时追加，AI 禁止自行揣测术语含义"）；暂无术语则留空骨架。
    - `docs/specs/`、`docs/design/`、`docs/adr/` 三个目录：各建一个 `README.md`，一句话说明该目录放什么、什么时机生成（措辞直接复用下方"文档生成时机表"对应行）。
    - `docs/manual/`、`docs/maps/` **均不预创建**：`docs/manual/` 仅当任务是写/改操作手册时按需创建；`docs/maps/` 仅当地图单节超过 30 行需要拆分时才建（均与下方"文档生成时机表"一致）。
-3. **monorepo 立场**：默认只维护仓库根目录一份 `AGENTS.md`——共享约定写在根文件，各包差异在根文件的「包级约定差异」小节按包列出。仅当某个包的差异条目超过全部条目一半时，才允许在该包目录下另放子 `AGENTS.md`，且根文件该包小节必须注明"进入该包目录后以子文件为准"，防止两份文件漂移。
+3. **monorepo 接线**：monorepo 判定已在第 0 步（扫描 workspace 文件）或第 1 步（直接问）完成。判定为 monorepo 时，根 `AGENTS.md` 必须包含「包级约定差异」小节（结构见输出模板），各包差异按包列入；判定为单仓库时，输出该节整体删除。仅当某个包的差异条目超过全部条目一半时，才允许在该包目录下另放子 `AGENTS.md`，且根文件该包小节必须注明"进入该包目录后以子文件为准"，防止两份文件漂移。
 4. 骨架建好后向用户报告清单：创建了哪些文件、哪些已存在被跳过。
 
 ### 第 4 步：收尾
@@ -62,7 +63,7 @@ agent_created: true
 用一段话总结关键决定（技术栈、与默认不同的个性化选择、对现状的变更）。提醒用户：
 
 - 在项目后续会话中说一句"先读 AGENTS.md 再动手"即可让约定生效。
-- 需求变化时重新运行本技能即可增量更新。
+- 需求变化**不重跑本技能**——走 `AGENTS.md` 的"工作流程"（拷问 → 更新 spec），由日常 agent 执行；只有**约定本身**过时或变化时，才重新运行本技能增量更新。
 
 ## 文档生成时机表
 
@@ -215,6 +216,9 @@ agent_created: true
 ## 8. 工程规范
 ...
 
+## 包级约定差异（仅 monorepo 保留本节；单仓库生成时整节删除）
+- {包名}：{该包与全局约定的差异条目，无差异的包不列}
+
 ## 文档地图
 - {路由规则，见"三张地图"章节}
 
@@ -246,7 +250,7 @@ agent_created: true
 ### 文档地图
 
 - 写/改某功能前 → 必读 `docs/specs/{功能名}.md`（无对应文件则先拷问定稿再建）。
-- 涉及跨模块/存储/集成决策 → 读 `docs/design/architecture.md` 与 `docs/adr/`。
+- 涉及跨模块/存储/集成决策 → 读 `docs/design/architecture.md` 与 `docs/adr/`（新项目无 architecture.md 时，先按"工作流程"阶段 3 产出设计并落盘后再继续）。
 - 不确定术语含义 → 读 `CONTEXT.md`，禁止自行揣测。
 - 任务是写/改操作手册 → 读 `docs/manual/` 下对应文件（目录按需创建，无对应文件则先建再写）。
 
