@@ -2,7 +2,7 @@
 
 **项目编码约定生成器**：一个完全自包含、可移植的 Agent Skill。AI 通过逐领域追问与你对齐编码偏好，最终在仓库根目录生成一份单文件中文 `AGENTS.md`，作为所有 AI 编码代理（Claude Code / Codex / Cursor / zcode / deepseek harness 等）共同遵守的项目约定。
 
-学习Matt Pocock的grill-me和gril-with-docs思想，将约束和grill更加具体化，着重grill界面、交互、后端与架构、数据与 API 契约、健壮性、安全、测试策略、工程规范方面。
+学习Matt Pocock的grill-me和gril-with-docs思想，将约束和grill更加具体化，着重grill界面、交互、后端与架构、数据与 API 契约、健壮性、安全、测试策略、工程规范方面，并系统管理软件工程方面的文档，确保文档和需求同步。
 
 一句话：**把约束变成文件，把决策留给拷问，让每个 agent 第一次就写对。**
 
